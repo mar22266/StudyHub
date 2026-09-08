@@ -13,8 +13,8 @@ docker compose up --build
 ```
 
 Frontend: http://localhost:5173  
-Backend: http://localhost:6001  
-Swagger: http://localhost:6001/docs
+Backend: http://localhost:8001
+Swagger: http://localhost:8001/docs
 
 ## DETENER
 

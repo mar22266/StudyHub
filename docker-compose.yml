@@ -21,7 +21,7 @@ services:
       JWT_ALGORITHM: ${JWT_ALGORITHM:-HS256}
       FRONTEND_URL: ${FRONTEND_URL:-http://localhost:5173}
     ports:
-      - "127.0.0.1:6001:6001"
+      - "127.0.0.1:8001:6001"
     depends_on:
       db:
         condition: service_healthy
