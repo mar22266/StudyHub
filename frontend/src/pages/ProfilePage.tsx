@@ -1,0 +1,2 @@
+import {useAuth} from '../contexts/AuthContext'
+export default function ProfilePage(){const{user}=useAuth();return <><header className="page-head"><h1>Perfil</h1><p>Información de tu cuenta de StudyHub.</p></header><section className="panel profile"><div className="avatar">{user?.nombre.charAt(0)}{user?.apellido.charAt(0)}</div><div><h2>{user?.nombre} {user?.apellido}</h2><p>{user?.email}</p><span className="status programada">{user?.rol}</span></div></section></>}

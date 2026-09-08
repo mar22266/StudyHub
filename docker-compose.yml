@@ -1,0 +1,37 @@
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-studyhub}
+      POSTGRES_USER: ${POSTGRES_USER:-studyhub_user}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-studyhub_password}
+    volumes:
+      - studyhub_postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-studyhub_user} -d ${POSTGRES_DB:-studyhub}"]
+      interval: 5s
+      timeout: 5s
+      retries: 15
+
+  backend:
+    build: ./backend
+    environment:
+      DATABASE_URL: ${DATABASE_URL:-postgresql+psycopg://studyhub_user:studyhub_password@db:5432/studyhub}
+      JWT_SECRET: ${JWT_SECRET:-studyhub_local_development_secret}
+      JWT_ALGORITHM: ${JWT_ALGORITHM:-HS256}
+      FRONTEND_URL: ${FRONTEND_URL:-http://localhost:5173}
+    ports:
+      - "127.0.0.1:6001:6001"
+    depends_on:
+      db:
+        condition: service_healthy
+
+  frontend:
+    build: ./frontend
+    ports:
+      - "127.0.0.1:5173:5173"
+    depends_on:
+      - backend
+
+volumes:
+  studyhub_postgres_data:

@@ -1,0 +1,7 @@
+import {createContext,useContext,useEffect,useState,type ReactNode} from 'react'
+import api from '../services/api'
+import type {User} from '../types'
+type Auth={user:User|null;loading:boolean;login:(email:string,password:string)=>Promise<void>;register:(data:{nombre:string;apellido:string;email:string;password:string})=>Promise<void>;logout:()=>void}
+const C=createContext<Auth|undefined>(undefined)
+export function AuthProvider({children}:{children:ReactNode}){const[user,setUser]=useState<User|null>(null);const[loading,setLoading]=useState(true);useEffect(()=>{const t=localStorage.getItem('studyhub_token');if(!t){setLoading(false);return}api.get<User>('/auth/me').then(r=>setUser(r.data)).catch(()=>localStorage.removeItem('studyhub_token')).finally(()=>setLoading(false))},[]);const accept=(x:{access_token:string;user:User})=>{localStorage.setItem('studyhub_token',x.access_token);setUser(x.user)};const login=async(email:string,password:string)=>accept((await api.post('/auth/login',{email,password})).data);const register=async(data:{nombre:string;apellido:string;email:string;password:string})=>accept((await api.post('/auth/register',data)).data);const logout=()=>{localStorage.removeItem('studyhub_token');setUser(null)};return <C.Provider value={{user,loading,login,register,logout}}>{children}</C.Provider>}
+export const useAuth=()=>{const v=useContext(C);if(!v)throw Error('AuthProvider requerido');return v}
