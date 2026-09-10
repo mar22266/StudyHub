@@ -322,9 +322,20 @@ export function AppointmentDetailPage() {
     }
   };
 
-  if (!item) {
-    return <p>Cargando sesión…</p>;
-  }
+if (error && !item) {
+  return (
+    <section className="panel">
+      <div className="notice error">{error}</div>
+      <Link className="button secondary" to="/appointments">
+        Volver a sesiones
+      </Link>
+    </section>
+  );
+}
+
+if (!item) {
+  return <p>Cargando sesión…</p>;
+}
 
   return (
     <>
