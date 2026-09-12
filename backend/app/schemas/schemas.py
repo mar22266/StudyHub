@@ -21,8 +21,18 @@ class UserOut(EmailPayload):
 class TokenOut(BaseModel): access_token: str; token_type: str = "bearer"; user: UserOut
 
 class GroupBase(BaseModel):
-    nombre: str = Field(min_length=2, max_length=140); descripcion: str = ""; materia: str = Field(min_length=2, max_length=120)
-    ubicacion: str = Field(min_length=2, max_length=140); cupo_maximo: int = Field(ge=2, le=100)
+    nombre: str = Field(min_length=2, max_length=140)
+    descripcion: str = ""
+    materia: str = Field(min_length=2, max_length=120)
+    ubicacion: str = Field(min_length=2, max_length=140)
+    cupo_maximo: int = Field(ge=2, le=100)
+
+    @field_validator("descripcion")
+    @classmethod
+    def validate_description(cls, value: str) -> str:
+        if "<" in value or ">" in value:
+            raise ValueError("La descripción no puede contener HTML")
+        return value
 class GroupCreate(GroupBase): pass
 class GroupUpdate(GroupBase): activo: bool = True
 class GroupOut(GroupBase):
