@@ -4,7 +4,7 @@ updates:
     directory: /frontend
     schedule:
       interval: weekly
-    # Mantiene actualizaciones de seguridad, sin ramas periódicas de versiones.
+    # Evita ramas periódicas de versiones; las alertas se gestionan en GitHub.
     open-pull-requests-limit: 0
   - package-ecosystem: pip
     directory: /backend
