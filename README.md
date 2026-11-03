@@ -53,4 +53,4 @@ En `frontend`, ejecutar `npm ci`, `npm run test:coverage` y `npm run build`. Git
 
 `scripts/deploy-local.ps1` crea `.env` con secretos aleatorios si no existe, construye los contenedores, espera su estado saludable y verifica la API y el frontend. El workflow `CD local` puede ejecutarlo automáticamente después de CI en un runner propio con etiquetas `self-hosted`, `Windows`, `studyhub` cuando `ENABLE_LOCAL_CD=true`. No se publica la aplicación en una nube.
 
-`.env.example` enumera los parámetros, mientras `.env` contiene los valores reales ignorados por Git. Dependabot propone actualizaciones semanales. Las normas de ramas y pull requests están en [CONTRIBUTING.md](CONTRIBUTING.md). El plan, la evidencia y la reflexión están en `docs/`.
+`.env.example` enumera los parámetros, mientras `.env` contiene los valores reales ignorados por Git. Dependabot conserva actualizaciones de seguridad; las actualizaciones periódicas de versiones están desactivadas para mantener una sola rama remota estable. Las normas de ramas y pull requests están en [CONTRIBUTING.md](CONTRIBUTING.md). El plan, la evidencia y la reflexión están en `docs/`.
