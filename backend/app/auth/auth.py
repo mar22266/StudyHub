@@ -10,7 +10,9 @@ from app.models import User
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 bearer = HTTPBearer()
-SECRET = os.getenv("JWT_SECRET", "studyhub_local_development_secret")
+SECRET = os.getenv("JWT_SECRET")
+if not SECRET or len(SECRET) < 32:
+    raise RuntimeError("JWT_SECRET debe contener al menos 32 caracteres")
 ALGORITHM = os.getenv("JWT_ALGORITHM", "HS256")
 def hash_password(password: str) -> str: return pwd_context.hash(password)
 def verify_password(password: str, hashed: str) -> bool: return pwd_context.verify(password, hashed)

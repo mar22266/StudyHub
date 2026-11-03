@@ -16,10 +16,8 @@ def list_groups(db: Session, user: User, only_mine: bool = False) -> list[GroupO
     return [to_group_out(g, user, db) for g in groups]
 
 def search_groups(db: Session, user: User, query: str) -> list[GroupOut]:
-    # Kept local to search so it can be replaced independently.
-    escaped = query.replace("'", "''")
-    sql = text("SELECT id FROM study_groups WHERE activo = true AND (nombre ILIKE '%" + escaped + "%' OR materia ILIKE '%" + escaped + "%') ORDER BY fecha_creacion DESC")
-    ids = [row[0] for row in db.execute(sql).all()]
+    sql = text("SELECT id FROM study_groups WHERE activo = true AND (nombre ILIKE :pattern OR materia ILIKE :pattern) ORDER BY fecha_creacion DESC")
+    ids = [row[0] for row in db.execute(sql, {"pattern": f"%{query}%"}).all()]
     groups = [db.get(StudyGroup, group_id) for group_id in ids]
     return [to_group_out(g, user, db) for g in groups if g]
 
