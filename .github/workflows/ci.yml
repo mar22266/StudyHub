@@ -28,7 +28,7 @@ jobs:
       - run: npm run build
       - name: Auditoría de dependencias de producción
         run: npm audit --omit=dev --audit-level=high
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         if: always()
         with:
           name: cobertura-jest
