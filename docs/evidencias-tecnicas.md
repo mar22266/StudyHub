@@ -71,7 +71,7 @@ El entorno se puede detener con `docker compose -f compose.deploy.yml down` para
 
 ## 5. Evidencia en GitHub
 
-- [Pull request #4](https://github.com/mar22266/StudyHub/pull/4): rama, commit de André Marroquin, revisión y **6/6 checks correctos**; sigue pendiente la aprobación de otro integrante exigida por la regla de `main`.
+- [Pull request #4](https://github.com/mar22266/StudyHub/pull/4): rama, commits de André Marroquin y **6/6 checks correctos**. La regla de `main` exige PR y cinco checks; el propietario puede integrar sin aprobación de otro integrante.
 - [CI: ejecución del PR](https://github.com/mar22266/StudyHub/actions/runs/41649871109): Jest, TypeScript, imágenes, auditoría y Gitleaks.
 - [CodeQL: ejecución del PR](https://github.com/mar22266/StudyHub/actions/runs/41649871107): análisis de TypeScript y Python.
 - [Variables de Actions](https://github.com/mar22266/StudyHub/settings/variables/actions): `CI_NODE_VERSION=22`, `CI_PYTHON_VERSION=3.12`, `ENABLE_LOCAL_CD=false`.
