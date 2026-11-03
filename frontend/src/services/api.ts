@@ -1,35 +1,34 @@
-import axios from 'axios'
+import { ApiError } from '../utils/apiError'
 
-const api = axios.create({baseURL:'/api'})
+type ApiResult<T> = { data: T }
 
-api.interceptors.request.use(c=>{
-  const t=localStorage.getItem('studyhub_token')
-  if(t)c.headers.Authorization=`Bearer ${t}`
-  return c
-})
+async function request<T>(method: string, path: string, body?: unknown): Promise<ApiResult<T>> {
+  const headers = new Headers()
+  const token = localStorage.getItem('studyhub_token')
+  if (token) headers.set('Authorization', `Bearer ${token}`)
+  if (body !== undefined) headers.set('Content-Type', 'application/json')
+
+  const response = await fetch(`/api${path}`, {
+    method,
+    headers,
+    body: body === undefined ? undefined : JSON.stringify(body),
+    redirect: 'error',
+  })
+  const text = response.status === 204 ? '' : await response.text()
+  let data: unknown = undefined
+  if (text) {
+    try { data = JSON.parse(text) } catch { data = text }
+  }
+  if (!response.ok) throw new ApiError(response.status, data)
+  return { data: data as T }
+}
+
+const api = {
+  get: <T = unknown>(path: string) => request<T>('GET', path),
+  post: <T = unknown>(path: string, body?: unknown) => request<T>('POST', path, body),
+  put: <T = unknown>(path: string, body?: unknown) => request<T>('PUT', path, body),
+  delete: <T = unknown>(path: string) => request<T>('DELETE', path),
+}
 
 export default api
-
-export const errorMessage=(e:unknown)=>{
-  if(!axios.isAxiosError(e)){
-    return 'No fue posible completar la operación'
-  }
-
-  const detail=e.response?.data?.detail
-
-  if(Array.isArray(detail)){
-    const message=detail.find(
-      item=>typeof item?.msg==='string'
-    )?.msg
-
-    if(message){
-      return message.replace(/^Value error,\s*/i,'')
-    }
-  }
-
-  if(typeof detail==='string'){
-    return detail
-  }
-
-  return 'No fue posible completar la operación'
-}
+export {errorMessage} from '../utils/apiError'

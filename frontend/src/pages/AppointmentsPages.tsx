@@ -4,6 +4,7 @@ import api, { errorMessage } from "../services/api";
 import type { Appointment, AppointmentInput, Group } from "../types";
 import ConfirmModal from "../components/ConfirmModal";
 import { useAuth } from '../contexts/AuthContext'
+import { hasValidTimeRange } from '../utils/appointment'
 
 const blank: AppointmentInput = {
   titulo: "",
@@ -118,6 +119,11 @@ export function AppointmentFormPage() {
 
   const submit = async (e: FormEvent) => {
     e.preventDefault();
+
+    if (!hasValidTimeRange(data.hora_inicio.slice(0, 5), data.hora_fin.slice(0, 5))) {
+      setError('La hora de finalización debe ser posterior al inicio');
+      return;
+    }
 
     setBusy(true);
     setError("");
