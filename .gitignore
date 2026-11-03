@@ -1,4 +1,5 @@
 node_modules
+/entrega/
 .env
 frontend/dist/
 frontend/coverage/
