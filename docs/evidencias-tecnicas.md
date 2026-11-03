@@ -75,6 +75,7 @@ El entorno se puede detener con `docker compose -f compose.deploy.yml down` para
 - [CI: ejecución del PR](https://github.com/mar22266/StudyHub/actions/runs/41649871109): Jest, TypeScript, imágenes, auditoría y Gitleaks.
 - [CodeQL: ejecución del PR](https://github.com/mar22266/StudyHub/actions/runs/41649871107): análisis de TypeScript y Python.
 - [Variables de Actions](https://github.com/mar22266/StudyHub/settings/variables/actions): `CI_NODE_VERSION=22`, `CI_PYTHON_VERSION=3.12`, `ENABLE_LOCAL_CD=false`.
+- [Seguridad de GitHub](https://github.com/mar22266/StudyHub/settings/security_analysis): grafo de dependencias y alertas de Dependabot activos; PR automáticos de seguridad desactivados para conservar una sola rama remota estable.
 - [Workflows](../.github/workflows/), [Compose](../compose.deploy.yml), [Jest](../frontend/tests/), [Dependabot](../.github/dependabot.yml), [plantilla PR](../.github/PULL_REQUEST_TEMPLATE.md).
 
 El CD automático de GitHub permanecerá desactivado mientras no exista un runner propio. Su script local fue ejecutado y verificado; no hay despliegue público.
