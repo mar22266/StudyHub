@@ -39,8 +39,9 @@ Configurar en **GitHub Secrets** de `mar22266/StudyHub`:
 | `VERCEL_TOKEN` | Token limitado al proyecto StudyHub. Rotarlo antes de su vencimiento; el token de esta configuración se solicitó por 90 días. |
 | `VERCEL_ORG_ID` | Identificador del equipo propietario. |
 | `VERCEL_PROJECT_ID` | Identificador del proyecto StudyHub. |
+| `VERCEL_AUTOMATION_BYPASS_SECRET` | Credencial específica del proyecto para verificar URLs protegidas mediante un header HTTP. No sustituye la autenticación de StudyHub. |
 
-Las comprobaciones utilizan `vercel curl` con la credencial autorizada para acceder a URLs con Deployment Protection, sin guardar otro secret de bypass en GitHub.
+Las comprobaciones envían `x-vercel-protection-bypass` directamente por HTTPS. Esto permite conservar un token de despliegue limitado al proyecto: `vercel curl` intenta consultar el perfil de usuario, una operación que ese token no permite. El secreto se utiliza como header, nunca como parte de una URL o de un reporte. El pipeline escribe el vínculo local del proyecto sin descargar sus secretos de producción.
 
 La aceptación de términos de Neon se completa por el titular en el navegador. Elegir el plan `free_v3` sin actualizar a un plan de pago. Un plan gratuito tiene cuotas y no implica capacidad ilimitada.
 

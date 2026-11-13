@@ -29,6 +29,18 @@ class Response:
 
 
 class VercelVerificationTests(TestCase):
+    def test_direct_http_uses_project_bypass_without_account_profile(self):
+        with patch.dict(os.environ, {"VERCEL_AUTOMATION_BYPASS_SECRET": "test-bypass-value"}):
+            with patch.object(verification, "urlopen", side_effect=self.responses()) as request:
+                with patch.object(verification.subprocess, "run") as cli:
+                    result = verification.verify("https://studyhub.example", "expected")
+        self.assertEqual(result["commit"], "expected")
+        cli.assert_not_called()
+        for call in request.call_args_list:
+            headers = {key.lower(): value for key, value in call.args[0].header_items()}
+            self.assertEqual(headers["x-vercel-protection-bypass"], "test-bypass-value")
+        self.assertNotIn("test-bypass-value", json.dumps(result))
+
     def test_cli_failure_never_exposes_deployment_token(self):
         response = subprocess.CompletedProcess([], 1, stdout='', stderr='Error: rejected test-private-token')
         with patch.dict(os.environ, {"VERCEL_TOKEN": "test-private-token", "VERCEL_ORG_ID": "team_test"}):
