@@ -13,7 +13,7 @@ El workflow anterior requería un runner Windows y estaba desactivado. `CD Verce
 3. Después de integrar en `main`, la CI del push debe terminar correctamente. `workflow_run` filtra pushes de `main` del mismo repositorio; los PR no despliegan producción.
 4. CD descarga el commit exacto de esa CI y ejecuta `vercel deploy --prod --skip-domain`.
 5. `verify-deployment.py` comprueba `/`, `/login`, el bundle JavaScript, `/api/health`, `/api/ready`, PostgreSQL y el SHA publicado. Los reintentos permiten absorber el arranque inicial de los servicios.
-6. Solo si las verificaciones pasan se ejecuta `vercel promote`. Si fallan, no se mueve el dominio de producción.
+6. Solo si las verificaciones pasan, `promote-vercel.py` exige el reporte exitoso del mismo despliegue y commit y llama la API de promoción del proyecto. Espera que el dominio público sirva el frontend y confirme el SHA y PostgreSQL sin enviar credenciales de bypass. Si fallan las verificaciones previas, no se mueve el dominio de producción.
 7. El resumen del run y el artefacto `evidencia-cd-vercel-<run_id>` guardan resultados, URL y commit sin contraseñas, tokens ni cadenas de conexión.
 
 La concurrencia serializa despliegues a producción. El disparo manual se restringe a `main` y sirve para reintentar la activación; el camino normal es CI → CD.
@@ -41,7 +41,7 @@ Configurar en **GitHub Secrets** de `mar22266/StudyHub`:
 | `VERCEL_PROJECT_ID` | Identificador del proyecto StudyHub. |
 | `VERCEL_AUTOMATION_BYPASS_SECRET` | Credencial específica del proyecto para verificar URLs protegidas mediante un header HTTP. No sustituye la autenticación de StudyHub. |
 
-Las comprobaciones envían `x-vercel-protection-bypass` directamente por HTTPS. Esto permite conservar un token de despliegue limitado al proyecto: `vercel curl` intenta consultar el perfil de usuario, una operación que ese token no permite. El secreto se utiliza como header, nunca como parte de una URL o de un reporte. El pipeline escribe el vínculo local del proyecto sin descargar sus secretos de producción.
+Las comprobaciones envían `x-vercel-protection-bypass` directamente por HTTPS. La promoción utiliza la API del proyecto. Esto permite conservar un token de despliegue limitado: los comandos `vercel curl` y `vercel promote` intentan consultar el perfil de usuario, una operación que ese token no permite. El secreto se utiliza como header, nunca como parte de una URL o de un reporte. El pipeline escribe el vínculo local del proyecto sin descargar sus secretos de producción.
 
 La aceptación de términos de Neon se completa por el titular en el navegador. Elegir el plan `free_v3` sin actualizar a un plan de pago. Un plan gratuito tiene cuotas y no implica capacidad ilimitada.
 
@@ -60,6 +60,6 @@ Actualizar informe y presentación solo después de reunir esos resultados. Mien
 
 Revertir el commit mediante PR y dejar que CI → CD publique el código anterior. También se puede promover desde Vercel un despliegue anterior conocido. No borrar el volumen Docker local ni la base Neon para revertir código.
 
-La promoción conserva el dominio anterior si falla la verificación; no revierte datos ni cambios de esquema. `/api/ready` ejecuta `SELECT 1`: verifica conexión, no reemplaza pruebas funcionales, de carga o de recuperación.
+Si falla la verificación previa, no se promueve el despliegue. La comprobación posterior confirma acceso público y SHA; un fallo allí marca el run como fallido, pero no ejecuta rollback automático. No se revierten datos ni cambios de esquema. `/api/ready` ejecuta `SELECT 1`: verifica conexión, no reemplaza pruebas funcionales, de carga o de recuperación.
 
 Referencias: [GitHub Actions con Vercel](https://vercel.com/kb/guide/how-can-i-use-github-actions-with-vercel), [FastAPI en Vercel](https://vercel.com/docs/frameworks/backend/fastapi), [despliegue y promoción](https://vercel.com/docs/cli/deploying-from-cli), [integraciones de almacenamiento](https://vercel.com/docs/marketplace-storage).

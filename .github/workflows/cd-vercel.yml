@@ -26,7 +26,7 @@ jobs:
     timeout-minutes: 20
     environment:
       name: production
-      url: ${{ steps.deploy.outputs.url }}
+      url: ${{ steps.promote.outputs.url || steps.deploy.outputs.url }}
     env:
       VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
       VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
@@ -99,9 +99,10 @@ jobs:
           python scripts/verify-deployment.py "$DEPLOYMENT_URL"
           --expected-sha "$DEPLOY_SHA"
       - name: Promover el despliegue verificado a producción
+        id: promote
         env:
           DEPLOYMENT_URL: ${{ steps.deploy.outputs.url }}
-        run: vercel promote "$DEPLOYMENT_URL" --yes --token="$VERCEL_TOKEN"
+        run: python scripts/promote-vercel.py "$DEPLOYMENT_URL" --expected-sha "$DEPLOY_SHA"
       - name: Guardar evidencia del CD
         if: always()
         uses: actions/upload-artifact@v4
