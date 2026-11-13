@@ -1,6 +1,7 @@
 import importlib.util
 import json
 from pathlib import Path
+import subprocess
 from unittest import TestCase
 from unittest.mock import patch
 
@@ -27,6 +28,12 @@ class Response:
 
 
 class VercelVerificationTests(TestCase):
+    def test_authenticated_cli_preserves_multiline_body_and_content_type(self):
+        response = subprocess.CompletedProcess([], 0, stdout='line1\nline2\n200\ntext/javascript')
+        with patch.object(verification.subprocess, "run", return_value=response):
+            self.assertEqual(verification.vercel_response("https://studyhub.example", "/asset.js"),
+                             ("line1\nline2", "text/javascript"))
+
     def responses(self, sha="expected", bundle_type="text/javascript"):
         page = '<div id="root"></div><script type="module" src="/assets/index-abc.js"></script>'
         return [Response(page), Response(page), Response("console.log('app')", bundle_type),

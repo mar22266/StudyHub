@@ -31,7 +31,6 @@ jobs:
       VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
       VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
       VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
-      VERCEL_AUTOMATION_BYPASS_SECRET: ${{ secrets.VERCEL_AUTOMATION_BYPASS_SECRET }}
       DEPLOY_SHA: ${{ github.event.workflow_run.head_sha || github.sha }}
       DEPLOY_RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
     steps:
@@ -86,7 +85,7 @@ jobs:
           DEPLOYMENT_URL: ${{ steps.deploy.outputs.url }}
         run: >-
           python scripts/verify-deployment.py "$DEPLOYMENT_URL"
-          --expected-sha "$DEPLOY_SHA"
+          --expected-sha "$DEPLOY_SHA" --vercel
       - name: Promover el despliegue verificado a producción
         env:
           DEPLOYMENT_URL: ${{ steps.deploy.outputs.url }}
