@@ -48,10 +48,32 @@ jobs:
           cache-dependency-path: backend/requirements.txt
       - run: python -m pip install -r backend/requirements.txt
       - run: python -m compileall -q backend/app
-      - name: Validar imágenes Docker
-        run: |
-          docker build -t studyhub-backend:ci ./backend
-          docker build -f frontend/Dockerfile.deploy -t studyhub-frontend:ci ./frontend
+      - name: Pruebas del despliegue
+        run: python -m unittest discover -s scripts/tests -v
+      - name: Construir y desplegar el entorno temporal
+        env:
+          DEPLOY_SHA: ${{ github.sha }}
+          DEPLOY_RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: >-
+          python scripts/deploy-local.py
+          --env-file "$RUNNER_TEMP/studyhub-ci.env"
+          --project-name studyhub-ci
+          --port 18080
+          --evidence-dir "$RUNNER_TEMP/studyhub-evidence"
+      - name: Guardar evidencia del despliegue temporal
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: despliegue-temporal
+          path: ${{ runner.temp }}/studyhub-evidence/
+          retention-days: 14
+          if-no-files-found: warn
+      - name: Limpiar únicamente el entorno temporal de CI
+        if: always()
+        run: >-
+          docker compose --project-name studyhub-ci
+          --env-file "$RUNNER_TEMP/studyhub-ci.env"
+          -f compose.deploy.yml down --volumes
 
   secrets:
     name: Secretos en el código
