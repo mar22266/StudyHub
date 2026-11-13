@@ -10,13 +10,17 @@ from app import models  # registers models
 
 @asynccontextmanager
 async def lifespan(_: FastAPI):
-    Base.metadata.create_all(bind=engine)
-    db = SessionLocal()
-    try:
-        # Las cuentas conocidas del laboratorio no deben crearse en una nube pública.
-        if os.getenv("SEED_DEMO_DATA", "false" if os.getenv("VERCEL") else "true").lower() == "true":
+    cloud = bool(os.getenv("VERCEL"))
+    # El esquema de nube se prepara explícitamente. Un arranque frío y /health
+    # no deben despertar PostgreSQL para inspeccionar tablas que ya existen.
+    if os.getenv("INITIALIZE_DATABASE_AT_STARTUP", "false" if cloud else "true").lower() == "true":
+        Base.metadata.create_all(bind=engine)
+    if os.getenv("SEED_DEMO_DATA", "false" if cloud else "true").lower() == "true":
+        db = SessionLocal()
+        try:
             seed_database(db)
-    finally: db.close()
+        finally:
+            db.close()
     yield
 
 app = FastAPI(title="StudyHub API", version="1.0.0", lifespan=lifespan)

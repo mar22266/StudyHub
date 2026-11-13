@@ -16,3 +16,7 @@ __pycache__/
 /.vercel/
 .env.local
 .env.*.local
+/.private/
+/output/
+frontend/npm-audit.json
+/pip-audit.json

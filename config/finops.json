@@ -1,0 +1,15 @@
+{
+  "currency": "USD",
+  "monthly_base_budget": 0,
+  "plans": {"vercel": "Hobby", "neon": "Free"},
+  "neon_published_storage_bytes": 1000000000,
+  "neon_published_compute_cu_hours": 100,
+  "review_threshold": 0.8,
+  "scenarios": [
+    {"name": "Uso académico supuesto", "compute_units": 0.25, "active_hours_per_day": 2, "days": 22},
+    {"name": "Actividad continua supuesta", "compute_units": 0.25, "active_hours_per_day": 24, "days": 30}
+  ],
+  "sources": ["https://vercel.com/docs/plans/hobby", "https://neon.com/pricing"],
+  "verified_date": "2026-11-13",
+  "billing_note": "Base de planes gratuitos, no factura verificada ni garantía de gasto futuro. Los cambios a planes pagos requieren autorización."
+}
