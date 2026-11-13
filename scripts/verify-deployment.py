@@ -19,7 +19,7 @@ def vercel_response(base: str, path: str) -> tuple[str, str]:
     command.extend(["--", "--fail", "--silent", "--show-error", "--max-time", "30",
                     "--write-out", "\n%{http_code}\n%{content_type}"])
     result = subprocess.run(command, text=True, capture_output=True, check=True, timeout=60)
-    body, status, content_type = result.stdout.rsplit("\n", 2)
+    body, status, content_type = result.stdout.rstrip("\r\n").rsplit("\n", 2)
     if status != "200":
         raise ValueError("Respuesta HTTP inesperada")
     return body, content_type

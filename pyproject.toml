@@ -1,0 +1,3 @@
+[tool.vercel.fastapi.static]
+# Los archivos de React son públicos; no necesitan el middleware CORS de la API.
+cdn = true

@@ -78,7 +78,7 @@ jobs:
           vercel deploy --prod --skip-domain --yes --token="$VERCEL_TOKEN" \
             --env STUDYHUB_COMMIT_SHA="$DEPLOY_SHA" \
             --meta githubCommitSha="$DEPLOY_SHA" > "$RUNNER_TEMP/deployment-url.txt"
-          url="$(tail -n 1 "$RUNNER_TEMP/deployment-url.txt")"
+          url="$(python scripts/vercel-output.py "$RUNNER_TEMP/deployment-url.txt")"
           echo "url=$url" >> "$GITHUB_OUTPUT"
       - name: Verificar aplicación y base de datos antes de promover
         env:

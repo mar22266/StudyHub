@@ -29,7 +29,7 @@ class Response:
 
 class VercelVerificationTests(TestCase):
     def test_authenticated_cli_preserves_multiline_body_and_content_type(self):
-        response = subprocess.CompletedProcess([], 0, stdout='line1\nline2\n200\ntext/javascript')
+        response = subprocess.CompletedProcess([], 0, stdout='line1\nline2\n200\ntext/javascript\n')
         with patch.object(verification.subprocess, "run", return_value=response):
             self.assertEqual(verification.vercel_response("https://studyhub.example", "/asset.js"),
                              ("line1\nline2", "text/javascript"))

@@ -14,6 +14,5 @@ __pycache__/
 .pytest_cache/
 /deployment-evidence/
 /.vercel/
-/public/
 .env.local
 .env.*.local
