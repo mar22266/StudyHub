@@ -1,0 +1,11 @@
+.git
+.github
+.env
+.env.*
+!.env.example
+tmp
+deployment-evidence
+frontend/node_modules
+frontend/coverage
+**/__pycache__
+*.pdf

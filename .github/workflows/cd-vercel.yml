@@ -1,0 +1,100 @@
+name: CD Vercel
+
+on:
+  workflow_run:
+    workflows: [CI]
+    types: [completed]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: read
+
+concurrency:
+  group: studyhub-production
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    if: >-
+      (github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main') ||
+      (github.event.workflow_run.conclusion == 'success' &&
+       github.event.workflow_run.event == 'push' &&
+       github.event.workflow_run.head_branch == 'main' &&
+       github.event.workflow_run.head_repository.full_name == github.repository)
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    environment:
+      name: production
+      url: ${{ steps.deploy.outputs.url }}
+    env:
+      VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+      VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+      VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+      DEPLOY_SHA: ${{ github.event.workflow_run.head_sha || github.sha }}
+      DEPLOY_RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+    steps:
+      - name: Exigir CI exitosa y evitar publicar un commit obsoleto
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          current="$(gh api "repos/$GITHUB_REPOSITORY/git/ref/heads/main" --jq '.object.sha')"
+          if [ "$current" != "$DEPLOY_SHA" ]; then
+            echo "::error::main avanzó; se debe desplegar el commit más reciente validado por CI."
+            exit 1
+          fi
+          passed="$(gh api "repos/$GITHUB_REPOSITORY/actions/workflows/ci.yml/runs?head_sha=$DEPLOY_SHA&event=push&status=completed" \
+            --jq '[.workflow_runs[] | select(.head_branch == "main" and .conclusion == "success")] | length')"
+          if [ "$passed" -eq 0 ]; then
+            echo "::error::El commit todavía no tiene una CI exitosa de push a main."
+            exit 1
+          fi
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ env.DEPLOY_SHA }}
+          persist-credentials: false
+      - name: Validar credenciales de despliegue
+        shell: bash
+        run: |
+          for key in VERCEL_TOKEN VERCEL_ORG_ID VERCEL_PROJECT_ID; do
+            if [ -z "${!key}" ]; then
+              echo "::error::Falta el secret $key. Consultar docs/CD.md."
+              exit 1
+            fi
+          done
+      - uses: actions/setup-node@v7
+        with:
+          node-version: '22'
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+      - name: Instalar CLI de Vercel
+        run: npm install --global vercel@65.15.0
+      - name: Construir y desplegar sin mover el dominio de producción
+        id: deploy
+        shell: bash
+        run: |
+          vercel deploy --prod --skip-domain --yes --token="$VERCEL_TOKEN" \
+            --env STUDYHUB_COMMIT_SHA="$DEPLOY_SHA" \
+            --meta githubCommitSha="$DEPLOY_SHA" > "$RUNNER_TEMP/deployment-url.txt"
+          url="$(python scripts/vercel-output.py "$RUNNER_TEMP/deployment-url.txt")"
+          echo "url=$url" >> "$GITHUB_OUTPUT"
+      - name: Verificar aplicación y base de datos antes de promover
+        env:
+          DEPLOYMENT_URL: ${{ steps.deploy.outputs.url }}
+        run: >-
+          python scripts/verify-deployment.py "$DEPLOYMENT_URL"
+          --expected-sha "$DEPLOY_SHA" --vercel
+      - name: Promover el despliegue verificado a producción
+        env:
+          DEPLOYMENT_URL: ${{ steps.deploy.outputs.url }}
+        run: vercel promote "$DEPLOYMENT_URL" --yes --token="$VERCEL_TOKEN"
+      - name: Guardar evidencia del CD
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: evidencia-cd-vercel-${{ github.run_id }}
+          path: deployment-evidence/
+          retention-days: 30
+          if-no-files-found: warn
