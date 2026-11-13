@@ -48,7 +48,15 @@ jobs:
           cache-dependency-path: backend/requirements.txt
       - run: python -m pip install -r backend/requirements.txt
       - name: Verificar dependencias iguales en Docker y Vercel
-        run: diff -u backend/requirements.txt requirements.txt
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import tomllib
+          docker = Path('backend/requirements.txt').read_text().splitlines()
+          vercel = tomllib.loads(Path('pyproject.toml').read_text())['project']['dependencies']
+          if sorted(docker) != sorted(vercel):
+              raise SystemExit('Las dependencias de Docker y Vercel deben coincidir.')
+          PY
       - run: python -m compileall -q backend/app
       - name: Pruebas del despliegue
         run: python -m unittest discover -s scripts/tests -v
