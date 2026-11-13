@@ -8,6 +8,14 @@ spec.loader.exec_module(promotion)
 
 
 class PromotionTests(TestCase):
+    def test_uses_production_domains_even_when_deployment_alias_is_empty(self):
+        domains = {"alias": [], "domains": [
+            {"name": "studyhub.vercel.app", "gitBranch": None},
+            {"name": "preview.vercel.app", "gitBranch": "feature"},
+            {"name": "invalid.example/path", "gitBranch": None},
+        ]}
+        self.assertEqual(promotion.production_urls(domains), ["https://studyhub.vercel.app"])
+
     def report(self):
         return {"result": "success", "url": "https://studyhub.example", "expected_commit": "current",
                 "checks": {"commit": "current", "database": "ok"}}

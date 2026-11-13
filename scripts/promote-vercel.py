@@ -30,6 +30,14 @@ def public_ready(url: str, sha: str) -> bool:
                 and data.get("database") == "ok" and data.get("status") == "ok")
 
 
+def production_urls(domains: dict) -> list[str]:
+    # El despliegue puede conservar alias=[] después de una promoción exitosa.
+    # La lista de dominios del proyecto es la fuente de los destinos de producción.
+    return ["https://" + domain["name"] for domain in domains.get("domains", [])
+            if not domain.get("gitBranch")
+            and re.fullmatch(r"[a-zA-Z0-9.-]+", domain.get("name", ""))]
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("url")
@@ -58,11 +66,8 @@ def main() -> int:
         deployment_id = deployment["id"]
         api(f"/v10/projects/{quote(project)}/promote/{quote(deployment_id)}", "POST")
         for _ in range(60):
-            deployment = api("/v13/deployments/" + quote(deployment_id))
-            for alias in deployment.get("alias", []):
-                if not re.fullmatch(r"[a-zA-Z0-9.-]+", alias):
-                    continue
-                url = "https://" + alias
+            domains = api(f"/v9/projects/{quote(project)}/domains")
+            for url in production_urls(domains):
                 try:
                     ready = public_ready(url, args.expected_sha)
                 except (URLError, OSError, ValueError):
