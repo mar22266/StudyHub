@@ -119,9 +119,11 @@ def main() -> int:
     credentials_file = args.private_dir / f"demo-credentials-{stamp}.json"
     private_json(credentials_file, {"url": "https://studyhub-alpha-olive.vercel.app",
                                     "accounts": passwords})
+    committed = False
     try:
         with engine.begin() as connection:
             result = restore_into_empty(connection, snapshot)
+        committed = True
         with engine.connect() as connection:
             size = connection.execute(text("SELECT pg_database_size(current_database())")).scalar_one()
         report = {"result": "success", "operation": "project demo seed reconstructed locally and loaded into Neon",
@@ -134,7 +136,10 @@ def main() -> int:
         print(json.dumps({"result": "success", **result, "credentials_file": str(credentials_file.relative_to(ROOT))}))
         return 0
     except Exception:
-        credentials_file.unlink(missing_ok=True)
+        # Una falla al medir o escribir el reporte no revierte el commit de Neon.
+        # Conservar las claves si los usuarios ya fueron confirmados en la base.
+        if not committed:
+            credentials_file.unlink(missing_ok=True)
         raise
     finally:
         engine.dispose()
