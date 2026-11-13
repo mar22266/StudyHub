@@ -4,6 +4,7 @@ from pathlib import Path
 import subprocess
 from unittest import TestCase
 from unittest.mock import patch
+import os
 
 spec = importlib.util.spec_from_file_location("verification", Path(__file__).parents[1] / "verify-deployment.py")
 verification = importlib.util.module_from_spec(spec)
@@ -28,6 +29,15 @@ class Response:
 
 
 class VercelVerificationTests(TestCase):
+    def test_cli_failure_never_exposes_deployment_token(self):
+        response = subprocess.CompletedProcess([], 1, stdout='', stderr='Error: rejected test-private-token')
+        with patch.dict(os.environ, {"VERCEL_TOKEN": "test-private-token", "VERCEL_ORG_ID": "team_test"}):
+            with patch.object(verification.subprocess, "run", return_value=response) as run:
+                with self.assertRaisesRegex(ValueError, r"rejected \[oculto\]") as raised:
+                    verification.vercel_response("https://studyhub.example", "/")
+                self.assertNotIn("test-private-token", str(raised.exception))
+                self.assertIn("--scope", run.call_args.args[0])
+
     def test_authenticated_cli_preserves_multiline_body_and_content_type(self):
         response = subprocess.CompletedProcess([], 0, stdout='line1\nline2\n200\ntext/javascript\n')
         with patch.object(verification.subprocess, "run", return_value=response):

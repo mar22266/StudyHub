@@ -16,9 +16,19 @@ def vercel_response(base: str, path: str) -> tuple[str, str]:
     command = ["vercel", "curl", path, "--deployment", base, "--yes"]
     if os.environ.get("VERCEL_TOKEN"):
         command.extend(["--token", os.environ["VERCEL_TOKEN"]])
+    if os.environ.get("VERCEL_ORG_ID"):
+        command.extend(["--scope", os.environ["VERCEL_ORG_ID"]])
     command.extend(["--", "--fail", "--silent", "--show-error", "--max-time", "30",
                     "--write-out", "\n%{http_code}\n%{content_type}"])
-    result = subprocess.run(command, text=True, capture_output=True, check=True, timeout=60)
+    result = subprocess.run(command, text=True, capture_output=True, timeout=60)
+    if result.returncode:
+        # Mostrar el diagnóstico de CLI, nunca la línea de comando ni el token.
+        detail = next((line for line in (result.stderr or "").splitlines()
+                       if line.startswith("Error:")), f"CLI exit {result.returncode}")
+        for name in ("VERCEL_TOKEN", "VERCEL_AUTOMATION_BYPASS_SECRET"):
+            if os.environ.get(name):
+                detail = detail.replace(os.environ[name], "[oculto]")
+        raise ValueError(f"vercel curl {path}: {detail[:500]}")
     body, status, content_type = result.stdout.rstrip("\r\n").rsplit("\n", 2)
     if status != "200":
         raise ValueError("Respuesta HTTP inesperada")
@@ -79,7 +89,8 @@ def main() -> int:
             break
         except (URLError, OSError, ValueError, subprocess.SubprocessError) as error:
             report["error_type"] = type(error).__name__
-            print(f"Intento {attempt}/6: verificación pendiente ({type(error).__name__}).", flush=True)
+            detail = str(error) if isinstance(error, ValueError) else type(error).__name__
+            print(f"Intento {attempt}/6: {detail}", flush=True)
             if attempt < 6:
                 time.sleep(5)
     if report["result"] == "success":
