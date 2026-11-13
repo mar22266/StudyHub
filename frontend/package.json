@@ -1,1 +1,26 @@
-{"type":"module","scripts":{"dev":"vite","build":"npm run typecheck && vite build","test":"jest --runInBand","test:coverage":"jest --runInBand --coverage","typecheck":"tsc --noEmit -p tsconfig.json && tsc --noEmit -p tsconfig.node.json"},"dependencies":{"react":"latest","react-dom":"latest","react-router-dom":"latest"},"devDependencies":{"@types/jest":"29.5.14","@types/node":"latest","@types/react":"latest","@types/react-dom":"latest","@vitejs/plugin-react":"latest","jest":"29.7.0","ts-jest":"29.4.5","typescript":"5.9.3","vite":"latest"}}
+{
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "npm run typecheck && vite build",
+    "test": "jest --runInBand",
+    "test:coverage": "jest --runInBand --coverage",
+    "typecheck": "tsc --noEmit -p tsconfig.json && tsc --noEmit -p tsconfig.node.json"
+  },
+  "dependencies": {
+    "react": "latest",
+    "react-dom": "latest",
+    "react-router-dom": "latest"
+  },
+  "devDependencies": {
+    "@types/jest": "29.5.14",
+    "@types/node": "latest",
+    "@types/react": "latest",
+    "@types/react-dom": "latest",
+    "@vitejs/plugin-react": "latest",
+    "jest": "29.7.0",
+    "ts-jest": "29.4.5",
+    "typescript": "5.9.3",
+    "vite": "8.3.8"
+  }
+}
